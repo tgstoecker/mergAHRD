@@ -10,7 +10,7 @@ RED='\033[0;31m'
 
 function usage() {
   if [ -n "$1" ]; then
-    echo -e "${RED}<F0><9F><91><89> $1${CLEAR}\n";
+    echo -e "${RED} ^ ^ ^  $1${CLEAR}\n";
   fi
   echo "Usage: $0 [-n number-of-people] [-s section-id] [-c cache-file]"
   echo "  -g, --GO_TABLE   AHRD output that INCL. GO term predictions"
