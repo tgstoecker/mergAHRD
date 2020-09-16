@@ -4,20 +4,23 @@
 #set -o pipefail -o noclobber -o nounset
 set -o pipefail -o noclobber
 
+bold=$(tput bold)
+normal=$(tput sgr0)
 
 CLEAR='\033[0m'
 RED='\033[0;31m'
 
 function usage() {
   if [ -n "$1" ]; then
-    echo -e "${RED} ^ ^ ^  $1${CLEAR}\n";
+    echo -e "${RED}<F0><9F><91><89> $1${CLEAR}\n";
   fi
-  echo "Usage: $0 [-n number-of-people] [-s section-id] [-c cache-file]"
-  echo "  -g, --GO_TABLE   AHRD output that INCL. GO term predictions"
-  echo "  -h, --HRD_TABLE   AHRD output WITHOUT GO term predictions"
-  echo "  The output is a .csv file in the current working directory called mergAHRD.csv"
+  echo "Usage: $0 [-g, --GO_TABLE] [-h, --HRD_TABLE]"
+  echo "  -g, --GO_TABLE   AHRD output that ${bold}INCL.${normal} GO term predictions"
+  echo "  -h, --HRD_TABLE   AHRD output ${bold}WITHOUT${normal} GO term predictions"
+  echo "  The output is a .csv file in the current working directory called ${bold}mergAHRD.csv${normal}"
   echo ""
   echo "Example: $0 --GO_TABLE AHRD_go_prediction.csv --HRD_TABLE AHRD_human_readable_descriptions.csv "
+  echo ""
   exit 1
 }
 
@@ -25,7 +28,7 @@ function usage() {
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -g|--GO_TABLE) GO_TABLE="$2"; shift; shift ;;
-#        -h|--HRD_TABLE) HRD_TABLE="3" ;;
+#        -h|--HRD_TABLE) HRD_TABLE="$3" ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -40,7 +43,7 @@ if [ -z "$GO_TABLE" ]; then usage "AHRD output table with GO terms is not provid
 #remove .transcript endings, etc. from first column
 #reduce all names to gene level
 
-    awk -F "\t" '{sub(/\..*$/,"",$1)}; OFS="\t" ' ahrd_wheat48_go_prediction.csv |
+    awk -F "\t" '{sub(/\..*$/,"",$1)}; OFS="\t" ' $GO_TABLE |
 `#also only keep gene name and GO terms` \
     awk -F "\t" '{print $1, $6}' OFS="\t" |
 `#sort based on gene names; next step: merge GO term values per gene; keep all here; redundancy removed later` \
@@ -60,4 +63,4 @@ if [ -z "$GO_TABLE" ]; then usage "AHRD output table with GO terms is not provid
 `#remove last comma in every line which is superfluous` \
     sed 's/,$//' |
 `#delete first line, where AHRD info used to be` \
-    sed '1d' > test_output
+    sed '1d' > AHRD_GO_formatted.csv
