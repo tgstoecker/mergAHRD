@@ -13,5 +13,6 @@ The idea behind mergAHRD is two offer an easy way of combining the outputs of bo
 Currently only an aggegation on gene level is implemented.  
 
 # ToDos:
+- change headers of the gene-level table
 - small bug, in some cases duplicate Human readable descriptions are still in the final .csv output
 - transcript/protein level output 
