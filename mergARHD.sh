@@ -12,7 +12,7 @@ RED='\033[0;31m'
 
 function usage() {
   if [ -n "$1" ]; then
-    echo -e "${RED}<F0><9F><91><89> $1${CLEAR}\n";
+    echo -e "${RED} ^ ^ ^  $1${CLEAR}\n";
   fi
   echo "Usage: $0 [-g, --GO_TABLE] [-h, --HRD_TABLE]"
   echo "  -g, --GO_TABLE   AHRD output that ${bold}INCL.${normal} GO term predictions"
@@ -25,25 +25,30 @@ function usage() {
 }
 
 
-while [[ "$#" -gt 0 ]]; do
+while [[ "$#" > 0 ]]; do
     case $1 in
-        -g|--GO_TABLE) GO_TABLE="$2"; shift; shift ;;
-#        -h|--HRD_TABLE) HRD_TABLE="$3" ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
-    esac
-    shift
+        -g|--GO_TABLE) GO_TABLE="$2"; shift;shift ;;
+        -h|--HRD_TABLE) HRD_TABLE="$2"; shift;shift ;;
+        -s|--SEPERATOR) SEPERATOR="$2"; shift;shift ;;
+        *) usage "Unknown parameter passed: $1"; shift; shift;;
+    esac;
 done
 
 # verify params
+#if [[ $# -ne 1 ]]; then usage "$0: Both input tables and a seperator are required!"; fi;
 if [ -z "$GO_TABLE" ]; then usage "AHRD output table with GO terms is not provided!"; fi;
-#if [ -z "$SECTION_ID" ]; then usage "Section id is not set."; fi;
+if [ -z "$HRD_TABLE" ]; then usage "AHRD output table with just Human Readable descriptions is not provided!"; fi;
+if [ -z "$SEPERATOR" ]; then usage "Protein Name trailing seperator; e.g. '.' to remove '.1.cds1' from TraesCS2B02G189200.1.cds1"; fi;
 
 
 
 #remove .transcript endings, etc. from first column
 #reduce all names to gene level
+#but first pass seperator variable to awk (first line);
+#the trick here is to let the shell handle the variable exapnsion and nesting it like this: '" $variable"'
 
-    awk -F "\t" '{sub(/\..*$/,"",$1)}; OFS="\t" ' $GO_TABLE |
+
+    awk -F "\t" '{sub(/\'"$SEPERATOR"'.*$/,"",$1)}; OFS="\t" ' $GO_TABLE |
 `#also only keep gene name and GO terms` \
     awk -F "\t" '{print $1, $6}' OFS="\t" |
 `#sort based on gene names; next step: merge GO term values per gene; keep all here; redundancy removed later` \
@@ -63,4 +68,43 @@ if [ -z "$GO_TABLE" ]; then usage "AHRD output table with GO terms is not provid
 `#remove last comma in every line which is superfluous` \
     sed 's/,$//' |
 `#delete first line, where AHRD info used to be` \
-    sed '1d' > AHRD_GO_formatted.csv
+    sed '1d' > tmp_AHRD_GO_formatted.csv &
+
+#assign the background program PIDs to variable; $! is the last launched process PID
+P1=$!
+
+
+#second part with table lacking GO terms
+#this still isn't perfect!
+#in cases with multiple annotations, 1 duplicate is retained... haven't figured out yet why
+
+    awk -F "\t" '{sub(/\'"$SEPERATOR"'.*$/,"",$1)}; OFS="\t" ' $HRD_TABLE |
+`#also only keep gene name and GO terms` \
+    awk -F "\t" '{print $1, $4}' OFS="\t" |
+`#sort based on gene names; next step: merge GO term values per gene; keep all here; redundancy removed later` \
+    sort -k1,1 |
+`#next line: Initializes while loop, precrementing i since $0 = full line in awk; starts at $1 (first field).` \
+`#Loops through the line until the end. + change of field seperator.` \
+`#So, if input is not in the array !a[$i]++, then it prints $i, if it is, it prints just the field seperator.` \
+    awk  -F"\t" ' BEGIN{num_old="";num_new=""}
+    {
+        if (num_old==""){num_old=$1;num_new=$1}
+        else {num_new=$1}
+        if (num_old==num_new){printf ", " $2}
+        if (num_old != num_new) {printf"\n";num_old=num_new;printf $1"\t"$2 }
+    } END {printf "\n"} ' |
+`#Normally = null split. Here, it resets i for the next line; shorthand to delete array;` \
+    awk -F "," '{ while(++i<=NF) printf (!a[$i]++) ? $i FS : ""; i=split("", a); print ""}; ' |
+`#remove last comma in every line which is superfluous` \
+    sed 's/,$//' |
+`#delete first line, where AHRD info used to be` \
+    sed '1d' > tmp_AHRD_HRDs_formatted.csv &
+
+#assign the background program PIDs to variable; $! is the last launched process PID
+P2=$!
+
+
+#wait for both processes to finish
+wait $P1 $P2
+
+
