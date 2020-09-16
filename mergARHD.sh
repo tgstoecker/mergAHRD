@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #safer programming env: some bugs recognized -> errors
-#set -o errexit -o pipefail -o noclobber -o nounset
-set -o pipefail -o noclobber -o nounset
+#set -o pipefail -o noclobber -o nounset
+set -o pipefail -o noclobber
 
 
 CLEAR='\033[0m'
