@@ -1,4 +1,42 @@
 #!/bin/bash
+
+#safer programming env: some bugs recognized -> errors
+#set -o errexit -o pipefail -o noclobber -o nounset
+set -o pipefail -o noclobber -o nounset
+
+
+CLEAR='\033[0m'
+RED='\033[0;31m'
+
+function usage() {
+  if [ -n "$1" ]; then
+    echo -e "${RED}<F0><9F><91><89> $1${CLEAR}\n";
+  fi
+  echo "Usage: $0 [-n number-of-people] [-s section-id] [-c cache-file]"
+  echo "  -g, --GO_TABLE   AHRD output that INCL. GO term predictions"
+  echo "  -h, --HRD_TABLE   AHRD output WITHOUT GO term predictions"
+  echo "  The output is a .csv file in the current working directory called mergAHRD.csv"
+  echo ""
+  echo "Example: $0 --GO_TABLE AHRD_go_prediction.csv --HRD_TABLE AHRD_human_readable_descriptions.csv "
+  exit 1
+}
+
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -g|--GO_TABLE) GO_TABLE="$2"; shift; shift ;;
+#        -h|--HRD_TABLE) HRD_TABLE="3" ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# verify params
+if [ -z "$GO_TABLE" ]; then usage "AHRD output table with GO terms is not provided!"; fi;
+#if [ -z "$SECTION_ID" ]; then usage "Section id is not set."; fi;
+
+
+
 #remove .transcript endings, etc. from first column
 #reduce all names to gene level
 
