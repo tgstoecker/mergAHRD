@@ -108,3 +108,21 @@ P2=$!
 wait $P1 $P2
 
 
+#since both files are sorted we can let awk trickery be for this last bit and use a simple join
+join \
+--check-order \
+-t $'\t' \
+-1 1 -2 1 tmp_AHRD_HRDs_formatted.csv tmp_AHRD_GO_formatted.csv > mergAHRD_FUNCTION_AND_GO.csv
+
+
+#cleanup
+rm tmp_AHRD_GO_formatted.csv tmp_AHRD_HRDs_formatted.csv
+
+#finishing message
+echo ""
+echo "${bold}All Done!"
+echo "Your file is here: ./mergAHRD_FUNCTION_AND_GO.csv"
+echo "Have fun with your gene level functional annotation for your species/genotype :D${normal}"
+
+
+
