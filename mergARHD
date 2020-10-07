@@ -101,7 +101,7 @@ awk -F "\t" '{sub(/\'"$SEPERATOR"'.*$/,"",$1)}; OFS="\t" ' $HRD_TABLE |
     sed 's/, $//' |
 `#delete first line, where AHRD info used to be` \
     sed '1d' > 1_AHRD_HRD_formatted.csv &&
-    tail -n +2 genes_hrd_intermediate | awk -F "\t" '{print $1}' OFS="\t" | paste - 1_AHRD_HRD_formatted.csv > tmp_AHRD_HRD_formatted.csv
+    tail -n +2 genes_hrd_intermediate | awk -F "\t" '{print $1}' OFS="\t" | paste - 1_AHRD_HRD_formatted.csv > tmp_AHRD_HRD_formatted.csv &
 
 
 #assign the background program PIDs to variable; $! is the last launched process PID
@@ -109,7 +109,7 @@ P2=$!
 
 
 #wait for both processes to finish
-wait $P1 $P2
+wait "$P1" "$P2"
 
 
 #since both files are sorted we can let awk trickery be for this last bit and use a simple join
