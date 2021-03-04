@@ -2,7 +2,7 @@
 Merging tool for AHRD output tables
 
 
-This is a small utility completely in bash for the easy combination of both outputs our groups funtional annotation software AHRD (https://github.com/groupschoof/AHRD) provides.  
+This is a small script utility for the easy combination of both outputs our groups funtional annotation software AHRD (https://github.com/groupschoof/AHRD) provides.  
 In essence, if users of AHRD are interested in both Human Readable Functional Annotation as well as the parsing of appropiate GO terms for all proteins, the programme should be run twice, once for each desired output, in order to get the best results for both.  
   
 Taken from the AHRD documentation:  
